@@ -21,7 +21,7 @@ USE `blockbuster` ;
 -- Table `blockbuster`.`actor`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `blockbuster`.`actor` (
-  `actor_id` INT NOT NULL,
+  `actor_id` INT NOT NULL AUTO_INCREMENT,
   `first_name` TEXT NULL DEFAULT NULL,
   `last_name` TEXT NULL DEFAULT NULL,
   `last_update` DATETIME NULL DEFAULT NULL,
@@ -35,7 +35,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `blockbuster`.`category`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `blockbuster`.`category` (
-  `category_id` INT NOT NULL,
+  `category_id` INT NOT NULL AUTO_INCREMENT,
   `name` TEXT NULL DEFAULT NULL,
   `last_update` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`category_id`))
@@ -48,10 +48,60 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- Table `blockbuster`.`language`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `blockbuster`.`language` (
-  `language_id` INT NOT NULL,
+  `language_id` INT NOT NULL AUTO_INCREMENT,
   `name` TEXT NULL DEFAULT NULL,
   `last_update` DATETIME NULL DEFAULT NULL,
   PRIMARY KEY (`language_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `blockbuster`.`special_features`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `blockbuster`.`special_features` (
+  `film_id` INT NOT NULL AUTO_INCREMENT,
+  `special_features` TEXT NULL DEFAULT NULL,
+  PRIMARY KEY (`film_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `blockbuster`.`rental`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `blockbuster`.`rental` (
+  `rental_id` INT NOT NULL AUTO_INCREMENT,
+  `rental_date` DATETIME NULL DEFAULT NULL,
+  `inventory_id` INT NULL DEFAULT NULL,
+  `customer_id` INT NULL DEFAULT NULL,
+  `return_date` DATETIME NULL DEFAULT NULL,
+  `staff_id` INT NULL DEFAULT NULL,
+  `last_update` DATETIME NULL DEFAULT NULL,
+  PRIMARY KEY (`rental_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `blockbuster`.`inventory`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `blockbuster`.`inventory` (
+  `inventory_id` INT NOT NULL AUTO_INCREMENT,
+  `film_id` INT NULL DEFAULT NULL,
+  `store_id` INT NULL DEFAULT NULL,
+  `last_update` DATETIME NULL DEFAULT NULL,
+  `rental_rental_id` INT NOT NULL,
+  PRIMARY KEY (`inventory_id`, `rental_rental_id`),
+  INDEX `fk_inventory_rental1_idx` (`rental_rental_id` ASC) VISIBLE,
+  CONSTRAINT `fk_inventory_rental1`
+    FOREIGN KEY (`rental_rental_id`)
+    REFERENCES `blockbuster`.`rental` (`rental_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
@@ -80,36 +130,10 @@ COLLATE = utf8mb4_0900_ai_ci;
 
 
 -- -----------------------------------------------------
--- Table `blockbuster`.`inventory`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `blockbuster`.`inventory` (
-  `inventory_id` INT NOT NULL,
-  `film_id` INT NULL DEFAULT NULL,
-  `store_id` INT NULL DEFAULT NULL,
-  `last_update` DATETIME NULL DEFAULT NULL,
-  PRIMARY KEY (`inventory_id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
-
-
--- -----------------------------------------------------
--- Table `blockbuster`.`special_features`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `blockbuster`.`special_features` (
-  `film_id` INT NOT NULL,
-  `special_features` TEXT NULL DEFAULT NULL,
-  PRIMARY KEY (`film_id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
-
-
--- -----------------------------------------------------
 -- Table `blockbuster`.`film`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `blockbuster`.`film` (
-  `film_id` INT NOT NULL,
+  `film_id` INT NOT NULL AUTO_INCREMENT,
   `title` TEXT NULL DEFAULT NULL,
   `description` TEXT NULL DEFAULT NULL,
   `release_year` BIGINT NULL DEFAULT NULL,
@@ -121,22 +145,22 @@ CREATE TABLE IF NOT EXISTS `blockbuster`.`film` (
   `rating` TEXT NULL DEFAULT NULL,
   `last_update` DATETIME NULL DEFAULT NULL,
   `language_language_id` INT NOT NULL,
-  `old_first_name` TEXT NOT NULL,
-  `inventory_inventory_id` INT NOT NULL,
   `special_features_film_id` INT NOT NULL,
-  PRIMARY KEY (`film_id`, `language_language_id`, `old_first_name`, `inventory_inventory_id`, `special_features_film_id`),
-  INDEX `fk_film_language1_idx` (`language_language_id` ASC) VISIBLE,
-  INDEX `fk_film_old1_idx` (`old_first_name` ASC) VISIBLE,
-  INDEX `fk_film_inventory1_idx` (`inventory_inventory_id` ASC) VISIBLE,
+  `inventory_inventory_id` INT NOT NULL,
+  `old_first_name` TEXT NOT NULL,
+  PRIMARY KEY (`film_id`, `language_language_id`, `special_features_film_id`, `inventory_inventory_id`, `old_first_name`),
+  INDEX `fk_film_language_idx` (`language_language_id` ASC) VISIBLE,
   INDEX `fk_film_special_features1_idx` (`special_features_film_id` ASC) VISIBLE,
-  CONSTRAINT `fk_film_language1`
+  INDEX `fk_film_inventory1_idx` (`inventory_inventory_id` ASC) VISIBLE,
+  INDEX `fk_film_old1_idx` (`old_first_name` ASC) VISIBLE,
+  CONSTRAINT `fk_film_language`
     FOREIGN KEY (`language_language_id`)
     REFERENCES `blockbuster`.`language` (`language_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_film_old1`
-    FOREIGN KEY (`old_first_name`)
-    REFERENCES `blockbuster`.`old` (`first_name`)
+  CONSTRAINT `fk_film_special_features1`
+    FOREIGN KEY (`special_features_film_id`)
+    REFERENCES `blockbuster`.`special_features` (`film_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_film_inventory1`
@@ -144,33 +168,9 @@ CREATE TABLE IF NOT EXISTS `blockbuster`.`film` (
     REFERENCES `blockbuster`.`inventory` (`inventory_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_film_special_features1`
-    FOREIGN KEY (`special_features_film_id`)
-    REFERENCES `blockbuster`.`special_features` (`film_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
-
-
--- -----------------------------------------------------
--- Table `blockbuster`.`rental`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `blockbuster`.`rental` (
-  `rental_id` INT NOT NULL,
-  `rental_date` DATETIME NULL DEFAULT NULL,
-  `inventory_id` INT NULL DEFAULT NULL,
-  `customer_id` INT NULL DEFAULT NULL,
-  `return_date` DATETIME NULL DEFAULT NULL,
-  `staff_id` INT NULL DEFAULT NULL,
-  `last_update` DATETIME NULL DEFAULT NULL,
-  `inventory_inventory_id` INT NOT NULL,
-  PRIMARY KEY (`rental_id`, `inventory_inventory_id`),
-  INDEX `fk_rental_inventory1_idx` (`inventory_inventory_id` ASC) VISIBLE,
-  CONSTRAINT `fk_rental_inventory1`
-    FOREIGN KEY (`inventory_inventory_id`)
-    REFERENCES `blockbuster`.`inventory` (`inventory_id`)
+  CONSTRAINT `fk_film_old1`
+    FOREIGN KEY (`old_first_name`)
+    REFERENCES `blockbuster`.`old` (`first_name`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -184,17 +184,21 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `blockbuster`.`actor_has_film` (
   `actor_actor_id` INT NOT NULL,
   `film_film_id` INT NOT NULL,
-  PRIMARY KEY (`actor_actor_id`, `film_film_id`),
-  INDEX `fk_actor_has_film_film1_idx` (`film_film_id` ASC) VISIBLE,
-  INDEX `fk_actor_has_film_actor_idx` (`actor_actor_id` ASC) VISIBLE,
-  CONSTRAINT `fk_actor_has_film_actor`
+  `film_language_language_id` INT NOT NULL,
+  `film_special_features_film_id` INT NOT NULL,
+  `film_inventory_inventory_id` INT NOT NULL,
+  `film_old_first_name` TEXT NOT NULL,
+  PRIMARY KEY (`actor_actor_id`, `film_film_id`, `film_language_language_id`, `film_special_features_film_id`, `film_inventory_inventory_id`, `film_old_first_name`),
+  INDEX `fk_actor_has_film_film1_idx` (`film_film_id` ASC, `film_language_language_id` ASC, `film_special_features_film_id` ASC, `film_inventory_inventory_id` ASC, `film_old_first_name` ASC) VISIBLE,
+  INDEX `fk_actor_has_film_actor1_idx` (`actor_actor_id` ASC) VISIBLE,
+  CONSTRAINT `fk_actor_has_film_actor1`
     FOREIGN KEY (`actor_actor_id`)
     REFERENCES `blockbuster`.`actor` (`actor_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_actor_has_film_film1`
-    FOREIGN KEY (`film_film_id`)
-    REFERENCES `blockbuster`.`film` (`film_id`)
+    FOREIGN KEY (`film_film_id` , `film_language_language_id` , `film_special_features_film_id` , `film_inventory_inventory_id` , `film_old_first_name`)
+    REFERENCES `blockbuster`.`film` (`film_id` , `language_language_id` , `special_features_film_id` , `inventory_inventory_id` , `old_first_name`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
